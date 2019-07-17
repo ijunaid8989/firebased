@@ -36,14 +36,36 @@ form.addEventListener("submit", e => {
   }).catch(err => {
     console.log(err);
   });
+
+  form.reset();
 });
 
 list.addEventListener("click", e => {
   console.log(e);
   if (e.target.tagName === "BUTTON") {
     const id = e.target.parentElement.getAttribute("data-id");
-    db.collection("recipes").doc().delete().then(() => {
+    db.collection("recipes").doc(id).delete().then(() => {
       console.log("recipe deleted");
     });
   }
+});
+
+const deleteRecipe = (id) => {
+  const recipes = document.querySelectorAll("li");
+  recipes.forEach(recipe => {
+    if (recipe.getAttribute("data-id") === id) {
+      recipe.remove();
+    }
+  });
+};
+
+db.collection("recipes").onSnapshot(snapshot => {
+  snapshot.docChanges().forEach(change => {
+    const doc = change.doc;
+    if (change.type === "added") {
+      addRecipe(doc.data(), doc.id)
+    } else if (change.type === "removed") {
+      deleteRecipe(doc.id);
+    }
+  });
 });
